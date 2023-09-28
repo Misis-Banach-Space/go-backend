@@ -35,22 +35,12 @@ func (wr *websiteRepository) Add(c *fiber.Ctx, websiteData model.WebsiteCreate) 
 		values($1) returning "id"
 	`, websiteData.Url)
 
-	// var websiteId uint
-	// err := db.QueryRow(c.Context(), `
-	// 	insert into `+wr.tableName+`(url)
-	// 	values($1) returning "id"
-	// `, websiteData.Url).Scan(&websiteId)
-
-	// _, err := db.Exec(c.Context(), `
-	// 	insert into websites_categories
-	// 	values($1, $2)
-	// `, websiteId, 1) // 1 is the id of 'unmatched' category, which is added on startup
 	return err
 }
 
-func (wr *websiteRepository) GetById(c *fiber.Ctx, id uint) (model.WebsiteDto, error) {
+func (wr *websiteRepository) GetById(c *fiber.Ctx, id uint) (*model.WebsiteDto, error) {
 	db := c.Locals("session").(*pgxpool.Conn)
-	website := model.WebsiteDto{}
+	website := &model.WebsiteDto{}
 
 	row := db.QueryRow(c.Context(), `
 		select id, url, category from `+wr.tableName+` where id = $1 
@@ -59,14 +49,14 @@ func (wr *websiteRepository) GetById(c *fiber.Ctx, id uint) (model.WebsiteDto, e
 	return website, err
 }
 
-func (wr *websiteRepository) GetAll(c *fiber.Ctx) ([]model.WebsiteDto, error) {
+func (wr *websiteRepository) GetAll(c *fiber.Ctx) (*[]model.WebsiteDto, error) {
 	db := c.Locals("session").(*pgxpool.Conn)
 	var websites []model.WebsiteDto
 
 	rows, err := db.Query(c.Context(), `
 		select id, url, category from `+wr.tableName)
 	if err != nil {
-		return []model.WebsiteDto{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -74,29 +64,29 @@ func (wr *websiteRepository) GetAll(c *fiber.Ctx) ([]model.WebsiteDto, error) {
 		website := model.WebsiteDto{}
 		err := rows.Scan(&website.Id, &website.Url, &website.Category)
 		if err != nil {
-			return []model.WebsiteDto{}, err
+			return nil, err
 		}
 
 		websites = append(websites, website)
 	}
 
-	return websites, err
+	return &websites, err
 }
 
-func (wr *websiteRepository) GetByCategory(c *fiber.Ctx, category string) ([]model.WebsiteDto, error) {
+func (wr *websiteRepository) GetByCategory(c *fiber.Ctx, category string) (*[]model.WebsiteDto, error) {
 	allWebsites, err := wr.GetAll(c)
 	if err != nil {
-		return []model.WebsiteDto{}, err
+		return nil, err
 	}
 
 	var websites []model.WebsiteDto
-	for _, website := range allWebsites {
+	for _, website := range *allWebsites {
 		if website.Category == category {
 			websites = append(websites, website)
 		}
 	}
 
-	return websites, nil
+	return &websites, nil
 }
 
 func (wr *websiteRepository) UpdateCategory(c *fiber.Ctx, websiteId uint, category string) error {
@@ -109,7 +99,7 @@ func (wr *websiteRepository) UpdateCategory(c *fiber.Ctx, websiteId uint, catego
 	return err
 }
 
-func (wr *websiteRepository) GetWebsitesCategoryCount(c *fiber.Ctx) ([]model.WebsiteCategoryCount, error) {
+func (wr *websiteRepository) GetWebsitesCategoryCount(c *fiber.Ctx) (*[]model.WebsiteCategoryCount, error) {
 	db := c.Locals("session").(*pgxpool.Conn)
 
 	rows, err := db.Query(c.Context(), `
@@ -117,7 +107,7 @@ func (wr *websiteRepository) GetWebsitesCategoryCount(c *fiber.Ctx) ([]model.Web
 		from `+wr.tableName+` group by category
 	`)
 	if err != nil {
-		return []model.WebsiteCategoryCount{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -126,11 +116,11 @@ func (wr *websiteRepository) GetWebsitesCategoryCount(c *fiber.Ctx) ([]model.Web
 		cur := model.WebsiteCategoryCount{}
 		err := rows.Scan(&cur.Category, &cur.Count)
 		if err != nil {
-			return []model.WebsiteCategoryCount{}, err
+			return nil, err
 		}
 
 		websitesCategoryCounts = append(websitesCategoryCounts, cur)
 	}
 
-	return websitesCategoryCounts, nil
+	return &websitesCategoryCounts, nil
 }

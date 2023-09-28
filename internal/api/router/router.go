@@ -46,13 +46,5 @@ func (r *router) Setup() error {
 		return err
 	}
 
-	// if err := r.setupWebsiteRoutes(apiV1); err != nil {
-	// 	return err
-	// }
-
-	// if err := r.db.CreateJoinTables(); err != nil {
-	// 	return err
-	// }
-
 	return nil
 }

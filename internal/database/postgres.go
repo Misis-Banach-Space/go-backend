@@ -22,12 +22,6 @@ func NewPostgres(timeout int) (*Postgres, error) {
 		time.Sleep(1)
 		pool, err := pgxpool.New(context.Background(), dsn)
 
-		// if err != nil {
-		// 	continue
-		// }
-
-		// err = pool.Ping(context.Background())
-
 		if err == nil {
 			return &Postgres{pool: pool, timeout: timeout}, nil
 		}

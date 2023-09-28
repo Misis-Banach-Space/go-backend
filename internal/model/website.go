@@ -31,9 +31,9 @@ type WebsiteCategoryCount struct {
 
 type WebsiteRepository interface {
 	Add(c *fiber.Ctx, websiteData WebsiteCreate) error
-	GetById(c *fiber.Ctx, id uint) (WebsiteDto, error)
-	GetAll(c *fiber.Ctx) ([]WebsiteDto, error)
-	GetByCategory(c *fiber.Ctx, category string) ([]WebsiteDto, error)
-	GetWebsitesCategoryCount(c *fiber.Ctx) ([]WebsiteCategoryCount, error)
+	GetById(c *fiber.Ctx, id uint) (*WebsiteDto, error)
+	GetAll(c *fiber.Ctx) (*[]WebsiteDto, error)
+	GetByCategory(c *fiber.Ctx, category string) (*[]WebsiteDto, error)
+	GetWebsitesCategoryCount(c *fiber.Ctx) (*[]WebsiteCategoryCount, error)
 	UpdateCategory(c *fiber.Ctx, websiteId uint, category string) error
 }
