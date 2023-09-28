@@ -41,14 +41,3 @@ func (pg *Postgres) Close() {
 func (pg *Postgres) Timeout() int {
 	return pg.timeout
 }
-
-func (pg *Postgres) CreateJoinTables() error {
-	_, err := pg.pool.Exec(context.Background(), `
-		create table if not exists websites_categories(
-			website_id int references websites(id),
-			category_id int references categories(id),
-			constraint pk_websites_categories primary key(website_id, category_id)
-		);
-	`)
-	return err
-}
