@@ -18,6 +18,7 @@ func DbSessionMiddleware(db *database.Postgres) fiber.Handler {
 		if err != nil {
 			return fiber.NewError(http.StatusInternalServerError, err.Error())
 		}
+		defer session.Release()
 
 		if err != nil {
 			return fiber.NewError(http.StatusInternalServerError, err.Error())

@@ -20,7 +20,7 @@ func main() {
 		panic(err)
 	}
 
-	pg, err := database.NewPostgres(5)
+	pg, err := database.NewPostgres(10)
 	if err != nil {
 		logging.Log.Panicf("failed to create db instance: %+v", err)
 	}

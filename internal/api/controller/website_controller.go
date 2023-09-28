@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/yogenyslav/kokoc-hack/internal/logging"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 )
 
@@ -22,10 +21,6 @@ func NewWebsiteController(websiteRepository model.WebsiteRepository) websiteCont
 		repository: websiteRepository,
 		validator:  validator.New(validator.WithRequiredStructEnabled()),
 	}
-}
-
-func logHandler(route string) {
-	logging.Log.Debugf("finished handling %s route", route)
 }
 
 func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
@@ -42,8 +37,6 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 	if err != nil {
 		return errCreateRecordsFailed("website", err)
 	}
-
-	logHandler("create")
 
 	return c.SendStatus(http.StatusCreated)
 }
@@ -62,8 +55,6 @@ func (wc *websiteController) GetWebsiteById(c *fiber.Ctx) error {
 		return errGetRecordsFailed("website", err)
 	}
 
-	logHandler("get by id")
-
 	return c.Status(http.StatusOK).JSON(website)
 }
 
@@ -75,8 +66,6 @@ func (wc *websiteController) GetWebsitesByCategory(c *fiber.Ctx) error {
 		return errGetRecordsFailed("website", err)
 	}
 
-	logHandler("get by category")
-
 	return c.Status(http.StatusOK).JSON(websites)
 }
 
@@ -85,8 +74,6 @@ func (wc *websiteController) GetAllWebsites(c *fiber.Ctx) error {
 	if err != nil {
 		return errGetRecordsFailed("website", err)
 	}
-
-	logHandler("get all")
 
 	return c.Status(http.StatusOK).JSON(websites)
 }
@@ -104,8 +91,6 @@ func (wc *websiteController) UpdateCategory(c *fiber.Ctx) error {
 		return errUpdateRecordsFailed("website", err)
 	}
 
-	logHandler("update")
-
 	return c.SendStatus(http.StatusNoContent)
 }
 
@@ -114,8 +99,6 @@ func (wc *websiteController) GetWebsitesCategoryCount(c *fiber.Ctx) error {
 	if err != nil {
 		return errGetRecordsFailed("website", err)
 	}
-
-	logHandler("get counts")
 
 	return c.Status(http.StatusOK).JSON(websitesCount)
 }
