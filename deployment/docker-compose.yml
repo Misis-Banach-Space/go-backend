@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    env_file:
+      - ../.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../data:/var/lib/postgresql/data
+    
+  backend:
+    build:
+      context: ../.
+      dockerfile: deployment/Dockerfile
+    restart: always
+    env_file:
+      - ../.env
+    depends_on:
+      - db
+    ports:
+      - "9999:9999"
