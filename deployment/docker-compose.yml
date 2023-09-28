@@ -21,4 +21,4 @@ services:
     depends_on:
       - db
     ports:
-      - "12347:9999"
+      - "9999:9999"
