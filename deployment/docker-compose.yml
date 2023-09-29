@@ -10,6 +10,12 @@ services:
       - "5432:5432"
     volumes:
       - ../data:/var/lib/postgresql/data
+
+  rabbit:
+    image: rabbitmq:3.12.6-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
     
   backend:
     build:

@@ -30,5 +30,7 @@ func (r *router) setupWebsiteRoutes(g fiber.Router) error {
 	websites.Post("/create", websiteController.CreateWebsite)
 	websites.Put("/update", websiteController.UpdateCategory)
 
+	websites.Get("/sse_update", websiteController.SseUpdateCategory)
+
 	return nil
 }
