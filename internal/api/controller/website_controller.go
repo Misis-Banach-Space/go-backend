@@ -42,6 +42,7 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 	}
 
 	// send request to ml with rabbit
+	// get statistics
 
 	return c.SendStatus(http.StatusCreated)
 }

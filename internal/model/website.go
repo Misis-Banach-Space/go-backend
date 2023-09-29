@@ -28,7 +28,6 @@ type WebsiteDto struct {
 
 type WebsiteCategoryCount struct {
 	Category string `json:"category"`
-	Theme    string `json:"theme"`
 	Count    uint   `json:"count"`
 }
 
