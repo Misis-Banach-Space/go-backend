@@ -46,5 +46,9 @@ func (r *router) Setup() error {
 		return err
 	}
 
+	if err := r.setupPageRoutes(apiV1); err != nil {
+		return err
+	}
+
 	return nil
 }

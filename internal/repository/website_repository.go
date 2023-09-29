@@ -18,6 +18,7 @@ func NewWebsiteRepository(ctx context.Context, tableName string, db *pgxpool.Con
 			id serial primary key,
 			url text unique,
 			category text default 'unmatched',
+			theme text default 'unmatched',
 			created_at timestamp default current_timestamp,
 			updated_at timestamp default current_timestamp
 		);
@@ -27,15 +28,19 @@ func NewWebsiteRepository(ctx context.Context, tableName string, db *pgxpool.Con
 	}, err
 }
 
-func (wr *websiteRepository) Add(c *fiber.Ctx, websiteData model.WebsiteCreate) error {
+func (wr *websiteRepository) Add(c *fiber.Ctx, websiteData model.WebsiteCreate) (uint, error) {
 	db := c.Locals("session").(*pgxpool.Conn)
 
-	_, err := db.Exec(c.Context(), `
+	var websiteId uint
+	err := db.QueryRow(c.Context(), `
 		insert into `+wr.tableName+`(url)
 		values($1) returning "id"
-	`, websiteData.Url)
+	`, websiteData.Url).Scan(&websiteId)
+	if err != nil {
+		return 0, err
+	}
 
-	return err
+	return websiteId, nil
 }
 
 func (wr *websiteRepository) GetById(c *fiber.Ctx, id uint) (*model.WebsiteDto, error) {
@@ -43,10 +48,29 @@ func (wr *websiteRepository) GetById(c *fiber.Ctx, id uint) (*model.WebsiteDto, 
 	website := &model.WebsiteDto{}
 
 	row := db.QueryRow(c.Context(), `
-		select id, url, category from `+wr.tableName+` where id = $1 
+		select id, url, category, theme from `+wr.tableName+` where id = $1 
 	`, id)
-	err := row.Scan(&website.Id, &website.Url, &website.Category)
-	return website, err
+	err := row.Scan(&website.Id, &website.Url, &website.Category, &website.Theme)
+	if err != nil {
+		return nil, err
+	}
+
+	return website, nil
+}
+
+func (wr *websiteRepository) GetByUrl(c *fiber.Ctx, url string) (*model.WebsiteDto, error) {
+	db := c.Locals("session").(*pgxpool.Conn)
+	website := &model.WebsiteDto{}
+
+	row := db.QueryRow(c.Context(), `
+		select id, url, category, theme from `+wr.tableName+` where url = $1 
+	`, url)
+	err := row.Scan(&website.Id, &website.Url, &website.Category, &website.Theme)
+	if err != nil {
+		return nil, err
+	}
+
+	return website, nil
 }
 
 func (wr *websiteRepository) GetAll(c *fiber.Ctx) (*[]model.WebsiteDto, error) {
@@ -54,7 +78,7 @@ func (wr *websiteRepository) GetAll(c *fiber.Ctx) (*[]model.WebsiteDto, error) {
 	var websites []model.WebsiteDto
 
 	rows, err := db.Query(c.Context(), `
-		select id, url, category from `+wr.tableName)
+		select id, url, category, theme from `+wr.tableName)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +86,7 @@ func (wr *websiteRepository) GetAll(c *fiber.Ctx) (*[]model.WebsiteDto, error) {
 
 	for rows.Next() {
 		website := model.WebsiteDto{}
-		err := rows.Scan(&website.Id, &website.Url, &website.Category)
+		err := rows.Scan(&website.Id, &website.Url, &website.Category, &website.Theme)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +94,7 @@ func (wr *websiteRepository) GetAll(c *fiber.Ctx) (*[]model.WebsiteDto, error) {
 		websites = append(websites, website)
 	}
 
-	return &websites, err
+	return &websites, nil
 }
 
 func (wr *websiteRepository) GetByCategory(c *fiber.Ctx, category string) (*[]model.WebsiteDto, error) {
@@ -82,6 +106,22 @@ func (wr *websiteRepository) GetByCategory(c *fiber.Ctx, category string) (*[]mo
 	var websites []model.WebsiteDto
 	for _, website := range *allWebsites {
 		if website.Category == category {
+			websites = append(websites, website)
+		}
+	}
+
+	return &websites, nil
+}
+
+func (wr *websiteRepository) GetByTheme(c *fiber.Ctx, theme string) (*[]model.WebsiteDto, error) {
+	allWebsites, err := wr.GetAll(c)
+	if err != nil {
+		return nil, err
+	}
+
+	var websites []model.WebsiteDto
+	for _, website := range *allWebsites {
+		if website.Theme == theme {
 			websites = append(websites, website)
 		}
 	}

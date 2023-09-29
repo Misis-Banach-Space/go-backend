@@ -36,7 +36,7 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 		return utils.ErrValidationError("websiteData", err)
 	}
 
-	err := wc.repository.Add(c, websiteData)
+	_, err := wc.repository.Add(c, websiteData)
 	if err != nil {
 		return utils.ErrCreateRecordsFailed("website", err)
 	}
@@ -56,6 +56,20 @@ func (wc *websiteController) GetWebsiteById(c *fiber.Ctx) error {
 	}
 
 	website, err := wc.repository.GetById(c, uint(websiteId))
+	if err != nil {
+		return utils.ErrGetRecordsFailed("website", err)
+	}
+
+	return c.Status(http.StatusOK).JSON(website)
+}
+
+func (wc *websiteController) GetWebsiteByUrl(c *fiber.Ctx) error {
+	websiteData := model.GetWebsiteByUrlRequest{}
+	if err := json.Unmarshal(c.Body(), &websiteData); err != nil {
+		return utils.ErrValidationError("websiteUrl", err)
+	}
+
+	website, err := wc.repository.GetByUrl(c, websiteData.Url)
 	if err != nil {
 		return utils.ErrGetRecordsFailed("website", err)
 	}
