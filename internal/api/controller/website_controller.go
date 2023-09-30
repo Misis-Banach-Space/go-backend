@@ -11,18 +11,21 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
+	"github.com/yogenyslav/kokoc-hack/internal/service"
 	"github.com/yogenyslav/kokoc-hack/internal/utils"
 )
 
 type websiteController struct {
 	repository model.WebsiteRepository
 	validator  *validator.Validate
+	rabbitmq   *service.RabbitMQ
 }
 
-func NewWebsiteController(websiteRepository model.WebsiteRepository) websiteController {
+func NewWebsiteController(wr model.WebsiteRepository, rabbitmq *service.RabbitMQ) websiteController {
 	return websiteController{
-		repository: websiteRepository,
+		repository: wr,
 		validator:  validator.New(validator.WithRequiredStructEnabled()),
+		rabbitmq:   rabbitmq,
 	}
 }
 
@@ -43,6 +46,11 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 
 	// send request to ml with rabbit
 	// get statistics
+
+	go wc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
+		Id:  websiteId,
+		Url: websiteData.Url,
+	}, wc.repository)
 
 	return c.Status(http.StatusCreated).JSON(websiteId)
 }
@@ -96,22 +104,6 @@ func (wc *websiteController) GetAllWebsites(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusOK).JSON(websites)
-}
-
-func (wc *websiteController) UpdateCategory(c *fiber.Ctx) error {
-	websiteId := c.QueryInt("id")
-	category := c.Query("category")
-
-	if websiteId <= 0 {
-		return utils.ErrValidationError("id", errors.New(fmt.Sprintf("id must be positive: %d", websiteId)))
-	}
-
-	err := wc.repository.UpdateCategory(c, uint(websiteId), category)
-	if err != nil {
-		return utils.ErrUpdateRecordsFailed("website", err)
-	}
-
-	return c.SendStatus(http.StatusNoContent)
 }
 
 func (wc *websiteController) GetWebsitesCategoryCount(c *fiber.Ctx) error {

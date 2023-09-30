@@ -7,19 +7,22 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/yogenyslav/kokoc-hack/internal/api/middleware"
 	"github.com/yogenyslav/kokoc-hack/internal/database"
+	"github.com/yogenyslav/kokoc-hack/internal/service"
 )
 
 type router struct {
-	db     *database.Postgres
-	engine *fiber.App
+	db       *database.Postgres
+	engine   *fiber.App
+	rabbitmq *service.RabbitMQ
 }
 
-func NewRouter(db *database.Postgres) router {
+func NewRouter(db *database.Postgres, rabbitmq *service.RabbitMQ) router {
 	app := fiber.New()
 
 	return router{
-		db:     db,
-		engine: app,
+		db:       db,
+		engine:   app,
+		rabbitmq: rabbitmq,
 	}
 }
 

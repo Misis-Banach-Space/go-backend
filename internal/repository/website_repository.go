@@ -129,14 +129,27 @@ func (wr *websiteRepository) GetByTheme(c *fiber.Ctx, theme string) (*[]model.We
 	return &websites, nil
 }
 
-func (wr *websiteRepository) UpdateCategory(c *fiber.Ctx, websiteId uint, category string) error {
-	db := c.Locals("session").(*pgxpool.Conn)
+func (wr *websiteRepository) Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error {
+	_, err := db.Exec(c, `
+		update `+wr.tableName+` set category = $1 where id = $2;
+	`, category, id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(c, `
+		update `+wr.tableName+` set theme = 13 where id = $2;
+	`, theme, id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(c, `
+		update `+wr.tableName+` set stats = $1 where id = $2;
+	`, stats, id)
+	if err != nil {
+		return err
+	}
 
-	_, err := db.Exec(c.Context(), `
-		update `+wr.tableName+` set category = $1 where id = $2
-	`, category, websiteId)
-
-	return err
+	return nil
 }
 
 func (wr *websiteRepository) GetWebsitesCategoryCount(c *fiber.Ctx) (*[]model.WebsiteCategoryCount, error) {

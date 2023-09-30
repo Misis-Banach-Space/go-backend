@@ -98,3 +98,28 @@ func (pr *pageRepository) GetWebsiteIdByDomain(c *fiber.Ctx, domain string) (uin
 
 	return websiteId, nil
 }
+
+func (pr *pageRepository) Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error {
+	_, err := db.Exec(c, `
+		update `+pr.tableName+` set category = $1 where id = $2;
+	`, category, id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(c, `
+		update `+pr.tableName+` set theme = 13 where id = $2;
+	`, theme, id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(c, `
+		update `+pr.tableName+` set stats = $1 where id = $2;
+	`, stats, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+	return err
+}

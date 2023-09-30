@@ -20,7 +20,8 @@ func (r *router) setupWebsiteRoutes(g fiber.Router) error {
 	if err != nil {
 		return err
 	}
-	websiteController := controller.NewWebsiteController(websiteRepository)
+
+	websiteController := controller.NewWebsiteController(websiteRepository, r.rabbitmq)
 
 	websites := g.Group("/websites")
 	websites.Get("/all", websiteController.GetAllWebsites)
@@ -28,7 +29,6 @@ func (r *router) setupWebsiteRoutes(g fiber.Router) error {
 	websites.Get("/category/:category", websiteController.GetWebsitesByCategory)
 	websites.Get("/:id", websiteController.GetWebsiteById)
 	websites.Post("/create", websiteController.CreateWebsite)
-	websites.Put("/update", websiteController.UpdateCategory)
 	websites.Post("/check_url", websiteController.GetWebsiteByUrl)
 
 	websites.Get("/sse_update", websiteController.SseUpdateCategory)

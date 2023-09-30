@@ -41,3 +41,7 @@ func (pg *Postgres) Close() {
 func (pg *Postgres) Timeout() int {
 	return pg.timeout
 }
+
+func (pg *Postgres) GetPool() *pgxpool.Pool {
+	return pg.pool
+}

@@ -1,9 +1,11 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Page struct {
@@ -11,7 +13,7 @@ type Page struct {
 	Url         string
 	Category    string
 	Theme       string
-	Stats       string
+	Stats       map[string]interface{}
 	FkWebsiteId uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -22,15 +24,16 @@ type PageCreate struct {
 }
 
 type PageDto struct {
-	Id       uint   `json:"id"`
-	Url      string `json:"url"`
-	Category string `json:"category"`
-	Theme    string `json:"theme"`
-	Stats    string `json:"stats"`
+	Id       uint                   `json:"id"`
+	Url      string                 `json:"url"`
+	Category string                 `json:"category"`
+	Theme    string                 `json:"theme"`
+	Stats    map[string]interface{} `json:"stats"`
 }
 
 type PageRepository interface {
 	Add(c *fiber.Ctx, pageData PageCreate, websiteId uint) (uint, error)
 	GetById(c *fiber.Ctx, id uint) (*PageDto, error)
 	GetPagesByWebsiteId(c *fiber.Ctx, websiteId uint) (*[]PageDto, error)
+	Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error
 }

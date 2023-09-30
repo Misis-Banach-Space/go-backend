@@ -1,9 +1,11 @@
 package model
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Website struct {
@@ -11,7 +13,7 @@ type Website struct {
 	Url       string
 	Category  string
 	Theme     string
-	Stats     string
+	Stats     map[string]interface{}
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -21,11 +23,11 @@ type WebsiteCreate struct {
 }
 
 type WebsiteDto struct {
-	Id       uint   `json:"id"`
-	Url      string `json:"url"`
-	Category string `json:"category"`
-	Theme    string `json:"theme"`
-	Stats    string `json:"stats"`
+	Id       uint                   `json:"id"`
+	Url      string                 `json:"url"`
+	Category string                 `json:"category"`
+	Theme    string                 `json:"theme"`
+	Stats    map[string]interface{} `json:"stats"`
 }
 
 type WebsiteCategoryCount struct {
@@ -45,5 +47,5 @@ type WebsiteRepository interface {
 	GetByCategory(c *fiber.Ctx, category string) (*[]WebsiteDto, error)
 	GetByTheme(c *fiber.Ctx, theme string) (*[]WebsiteDto, error)
 	GetWebsitesCategoryCount(c *fiber.Ctx) (*[]WebsiteCategoryCount, error)
-	UpdateCategory(c *fiber.Ctx, websiteId uint, category string) error
+	Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error
 }
