@@ -72,7 +72,7 @@ func NewRabbutMQ(pool *pgxpool.Pool) (*RabbitMQ, error) {
 		return nil, err
 	}
 
-	events := make(chan string)
+	events := make(chan string, 1)
 
 	return &RabbitMQ{
 		conn:    conn,
@@ -121,7 +121,7 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 				logging.Log.Errorf("can't unmarshal response: %+v", err)
 				return
 			}
-			logging.Log.Debugf("wrote %+v update evnt into chan %+v", res, r.events)
+			logging.Log.Debugf("wrote %+v update event into chan %+v", res, r.events)
 			r.events <- fmt.Sprintf("updated id: %d", res.Id)
 			break
 		}

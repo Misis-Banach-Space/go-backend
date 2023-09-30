@@ -129,35 +129,20 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 	log.Debugf("events %+v", wc.rabbitmq.Events())
 
 	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
-		fmt.Println("WRITER")
 		var i int
-		for {
+		for event := range wc.rabbitmq.Events() {
 			i++
-			event := <-wc.rabbitmq.Events()
 			msg := fmt.Sprintf("%d - the event is %s", i, event)
 			fmt.Fprintf(w, "data: Message: %s\n\n", msg)
 			fmt.Println(msg)
 
 			err := w.Flush()
 			if err != nil {
-				// Refreshing page in web browser will establish a new
-				// SSE connection, but only (the last) one is alive, so
-				// dead connections must be closed here.
 				fmt.Printf("Error while flushing: %v. Closing http connection.\n", err)
-
 				break
 			}
 			time.Sleep(2 * time.Second)
 		}
-		// for {
-		// 	event := <-wc.rabbitmq.Events()
-		// 	logging.Log.Debugf("event: %s", event)
-		// 	fmt.Fprintf(w, "data: Event: %s\n\n", event)
-		// 	if err := w.Flush(); err != nil {
-		// 		logging.Log.Errorf("failed to flush: %+v", err)
-		// 		break
-		// 	}
-		// }
 	})
 
 	return nil
