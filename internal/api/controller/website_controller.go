@@ -44,9 +44,6 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 		return utils.ErrCreateRecordsFailed("website", err)
 	}
 
-	// send request to ml with rabbit
-	// get statistics
-
 	go wc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
 		Id:  websiteId,
 		Url: websiteData.Url,
@@ -81,6 +78,13 @@ func (wc *websiteController) GetWebsiteByUrl(c *fiber.Ctx) error {
 	website, err := wc.repository.GetOneByFilter(c, "url", websiteData.Url)
 	if err != nil {
 		return utils.ErrGetRecordsFailed("website", err)
+	}
+
+	if website.Category == "unmatched" || website.Theme == "unmatched" || website.Stats == nil {
+		go wc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
+			Id:  website.Id,
+			Url: websiteData.Url,
+		}, wc.repository)
 	}
 
 	return c.Status(http.StatusOK).JSON(website)
