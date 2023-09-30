@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/yogenyslav/kokoc-hack/internal/config"
 	"github.com/yogenyslav/kokoc-hack/internal/logging"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 )
@@ -34,7 +36,7 @@ type RabbitMQ struct {
 }
 
 func NewRabbutMQ(pool *pgxpool.Pool) (*RabbitMQ, error) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", config.Cfg.RabbitUser, config.Cfg.RabbitPassword, config.Cfg.RabbitHost, config.Cfg.RabbitPort))
 	if err != nil {
 		return nil, err
 	}
