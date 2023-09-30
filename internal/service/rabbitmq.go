@@ -121,7 +121,6 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 				logging.Log.Errorf("can't unmarshal response: %+v", err)
 				return
 			}
-			logging.Log.Debugf("wrote %+v update event into chan %+v", res, r.events)
 			r.events <- fmt.Sprintf("updated id: %d", res.Id)
 			break
 		}

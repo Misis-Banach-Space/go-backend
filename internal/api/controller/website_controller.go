@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -131,14 +130,12 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 			i++
 			msg := fmt.Sprintf("%d - the event is %s", i, event)
 			fmt.Fprintf(w, "data: Message: %s\n\n", msg)
-			fmt.Println(msg)
 
 			err := w.Flush()
 			if err != nil {
 				fmt.Printf("Error while flushing: %v. Closing http connection.\n", err)
 				break
 			}
-			time.Sleep(2 * time.Second)
 		}
 	})
 
