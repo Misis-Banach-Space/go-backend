@@ -13,7 +13,6 @@ type Page struct {
 	Url         string
 	Category    string
 	Theme       string
-	Stats       map[string]interface{}
 	FkWebsiteId uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -24,11 +23,10 @@ type PageCreate struct {
 }
 
 type PageDto struct {
-	Id       uint                   `json:"id"`
-	Url      string                 `json:"url"`
-	Category string                 `json:"category"`
-	Theme    string                 `json:"theme"`
-	Stats    map[string]interface{} `json:"stats"`
+	Id       uint   `json:"id"`
+	Url      string `json:"url"`
+	Category string `json:"category"`
+	Theme    string `json:"theme"`
 }
 
 type GetPageByUrlRequest struct {
@@ -39,5 +37,5 @@ type PageRepository interface {
 	Add(c *fiber.Ctx, pageData PageCreate, websiteId uint) (uint, error)
 	GetOneByFilter(c *fiber.Ctx, filter string, value any) (*PageDto, error)
 	GetPagesByWebsiteId(c *fiber.Ctx, websiteId uint) (*[]PageDto, error)
-	Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error
+	Update(c context.Context, db *pgxpool.Pool, newData UrlResponse) error
 }

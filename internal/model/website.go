@@ -47,5 +47,5 @@ type WebsiteRepository interface {
 	GetByCategory(c *fiber.Ctx, category string) (*[]WebsiteDto, error)
 	GetByTheme(c *fiber.Ctx, theme string) (*[]WebsiteDto, error)
 	GetWebsitesCategoryCount(c *fiber.Ctx) (*[]WebsiteCategoryCount, error)
-	Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error
+	Update(c context.Context, db *pgxpool.Pool, newData UrlResponse) error
 }

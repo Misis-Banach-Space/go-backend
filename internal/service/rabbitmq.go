@@ -120,7 +120,7 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 			break
 		}
 	}
-	err = repository.Update(c, r.dbPool, urlRequest.Id, res.Category, res.Theme, res.Stats)
+	err = repository.Update(c, r.dbPool, res)
 	if err != nil {
 		logging.Log.Errorf("can't update url in db: %+v", err)
 	}

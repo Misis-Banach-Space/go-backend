@@ -20,5 +20,5 @@ type UrlResponse struct {
 }
 
 type UrlEventRepository interface {
-	Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error
+	Update(c context.Context, db *pgxpool.Pool, newData UrlResponse) error
 }

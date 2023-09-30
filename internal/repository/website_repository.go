@@ -129,22 +129,22 @@ func (wr *websiteRepository) GetByTheme(c *fiber.Ctx, theme string) (*[]model.We
 	return &websites, nil
 }
 
-func (wr *websiteRepository) Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error {
+func (wr *websiteRepository) Update(c context.Context, db *pgxpool.Pool, newData model.UrlResponse) error {
 	_, err := db.Exec(c, `
 		update `+wr.tableName+` set category = $1 where id = $2;
-	`, category, id)
+	`, newData.Category, newData.Id)
 	if err != nil {
 		return err
 	}
 	_, err = db.Exec(c, `
 		update `+wr.tableName+` set theme = 13 where id = $2;
-	`, theme, id)
+	`, newData.Theme, newData.Id)
 	if err != nil {
 		return err
 	}
 	_, err = db.Exec(c, `
 		update `+wr.tableName+` set stats = $1 where id = $2;
-	`, stats, id)
+	`, newData.Stats, newData.Id)
 	if err != nil {
 		return err
 	}
