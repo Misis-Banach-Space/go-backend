@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 	"github.com/yogenyslav/kokoc-hack/internal/service"
 	"github.com/yogenyslav/kokoc-hack/internal/utils"
@@ -124,8 +125,11 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 	c.Set("Connection", "keep-alive")
 	c.Set("Transfer-Encoding", "chunked")
 
+	log.Debugf("events %+v", wc.rabbitmq.Events())
+
 	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 		for event := range wc.rabbitmq.Events() {
+			log.Debugf("event: %s", event)
 			fmt.Fprintf(w, "%+v", event)
 		}
 		w.Flush()

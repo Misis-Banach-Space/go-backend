@@ -72,11 +72,14 @@ func NewRabbutMQ(pool *pgxpool.Pool) (*RabbitMQ, error) {
 		return nil, err
 	}
 
+	events := make(chan string)
+
 	return &RabbitMQ{
 		conn:    conn,
 		channel: ch,
 		queue:   q,
 		msgs:    msgs,
+		events:  events,
 		dbPool:  pool,
 	}, nil
 }
@@ -106,6 +109,7 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 			Body:          b.Bytes(),
 		})
 	if err != nil {
+		logging.Log.Errorf("failed to publish: %+v", err)
 		return
 	}
 
@@ -117,15 +121,16 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 				logging.Log.Errorf("can't unmarshal response: %+v", err)
 				return
 			}
-			logging.Log.Debugf("got response: %+v", res)
+			logging.Log.Debugf("wrote %+v update evnt into chan %+v", res, r.events)
+			r.events <- fmt.Sprintf("updated id: %d", res.Id)
 			break
 		}
 	}
 	err = repository.Update(c, r.dbPool, res)
 	if err != nil {
 		logging.Log.Errorf("can't update url in db: %+v", err)
+		return
 	}
-	r.events <- "updated"
 }
 
 func (r *RabbitMQ) Events() chan string {
@@ -133,6 +138,7 @@ func (r *RabbitMQ) Events() chan string {
 }
 
 func (r *RabbitMQ) Close() {
+	close(r.events)
 	r.channel.Close()
 	r.conn.Close()
 }
