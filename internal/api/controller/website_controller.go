@@ -133,7 +133,8 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 		var i int
 		for {
 			i++
-			msg := fmt.Sprintf("%d - the time is %v", i, time.Now())
+			event := <-wc.rabbitmq.Events()
+			msg := fmt.Sprintf("%d - the event is %s", i, event)
 			fmt.Fprintf(w, "data: Message: %s\n\n", msg)
 			fmt.Println(msg)
 
