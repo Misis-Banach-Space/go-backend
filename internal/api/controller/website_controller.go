@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/yogenyslav/kokoc-hack/internal/logging"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 	"github.com/yogenyslav/kokoc-hack/internal/service"
 	"github.com/yogenyslav/kokoc-hack/internal/utils"
@@ -133,9 +135,10 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 
 			err := w.Flush()
 			if err != nil {
-				fmt.Printf("Error while flushing: %v. Closing http connection.\n", err)
+				logging.Log.Errorf("Error while flushing: %v. Closing http connection.\n", err)
 				break
 			}
+			time.Sleep(time.Second * 1)
 		}
 	})
 
