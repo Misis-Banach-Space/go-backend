@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 )
@@ -19,6 +20,7 @@ func NewWebsiteRepository(ctx context.Context, tableName string, db *pgxpool.Con
 			url text unique,
 			category text default 'unmatched',
 			theme text default 'unmatched',
+			stats jsonb,
 			created_at timestamp default current_timestamp,
 			updated_at timestamp default current_timestamp
 		);
@@ -48,9 +50,9 @@ func (wr *websiteRepository) GetOneByFilter(c *fiber.Ctx, filter string, value a
 	website := &model.WebsiteDto{}
 
 	row := db.QueryRow(c.Context(), `
-		select id, url, category, theme from `+wr.tableName+` where `+filter+` = $1 
+		select id, url, category, theme, stats from `+wr.tableName+` where `+filter+` = $1 
 	`, value)
-	err := row.Scan(&website.Id, &website.Url, &website.Category, &website.Theme)
+	err := row.Scan(&website.Id, &website.Url, &website.Category, &website.Theme, &website.Stats)
 	if err != nil {
 		return nil, err
 	}
@@ -62,12 +64,16 @@ func (wr *websiteRepository) GetManyByFilter(c *fiber.Ctx, filter string, value 
 	db := c.Locals("session").(*pgxpool.Conn)
 	var websites []model.WebsiteDto
 
-	sql := "select id, url, category, theme from " + wr.tableName
+	var rows pgx.Rows
+	var err error
+	sql := "select id, url, category, theme, stats from " + wr.tableName
 	if filter != "" {
 		sql += " where" + filter + " = $1;"
+		rows, err = db.Query(c.Context(), sql, value)
+	} else {
+		rows, err = db.Query(c.Context(), sql)
 	}
 
-	rows, err := db.Query(c.Context(), sql, value)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +81,7 @@ func (wr *websiteRepository) GetManyByFilter(c *fiber.Ctx, filter string, value 
 
 	for rows.Next() {
 		website := model.WebsiteDto{}
-		err := rows.Scan(&website.Id, &website.Url, &website.Category, &website.Theme)
+		err := rows.Scan(&website.Id, &website.Url, &website.Category, &website.Theme, &website.Stats)
 		if err != nil {
 			return nil, err
 		}

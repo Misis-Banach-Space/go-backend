@@ -42,12 +42,7 @@ type GetWebsiteByUrlRequest struct {
 type WebsiteRepository interface {
 	Add(c *fiber.Ctx, websiteData WebsiteCreate) (uint, error)
 	GetOneByFilter(c *fiber.Ctx, filter string, value any) (*WebsiteDto, error)
-	// GetById(c *fiber.Ctx, id uint) (*WebsiteDto, error)
-	// GetByUrl(c *fiber.Ctx, url string) (*WebsiteDto, error)
 	GetManyByFilter(c *fiber.Ctx, filter string, value any) (*[]WebsiteDto, error)
-	// GetAll(c *fiber.Ctx) (*[]WebsiteDto, error)
-	// GetByCategory(c *fiber.Ctx, category string) (*[]WebsiteDto, error)
-	// GetByTheme(c *fiber.Ctx, theme string) (*[]WebsiteDto, error)
 	GetWebsitesCategoryCount(c *fiber.Ctx) (*[]WebsiteCategoryCount, error)
 	Update(c context.Context, db *pgxpool.Pool, newData UrlResponse) error
 }
