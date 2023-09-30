@@ -31,9 +31,13 @@ type PageDto struct {
 	Stats    map[string]interface{} `json:"stats"`
 }
 
+type GetPageByUrlRequest struct {
+	Url string `json:"url"`
+}
+
 type PageRepository interface {
 	Add(c *fiber.Ctx, pageData PageCreate, websiteId uint) (uint, error)
-	GetById(c *fiber.Ctx, id uint) (*PageDto, error)
+	GetOneByFilter(c *fiber.Ctx, filter string, value any) (*PageDto, error)
 	GetPagesByWebsiteId(c *fiber.Ctx, websiteId uint) (*[]PageDto, error)
 	Update(c context.Context, db *pgxpool.Pool, id uint, category, theme string, stats map[string]interface{}) error
 }

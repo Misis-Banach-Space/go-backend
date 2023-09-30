@@ -45,14 +45,14 @@ func (pr *pageRepository) Add(c *fiber.Ctx, pageData model.PageCreate, websiteId
 	return pageId, nil
 }
 
-func (pr *pageRepository) GetById(c *fiber.Ctx, id uint) (*model.PageDto, error) {
+func (pr *pageRepository) GetOneByFilter(c *fiber.Ctx, filter string, value any) (*model.PageDto, error) {
 	db := c.Locals("session").(*pgxpool.Conn)
 	page := &model.PageDto{}
 
 	row := db.QueryRow(c.Context(), `
-		select id, url, category, theme from `+pr.tableName+` where id = $1 
-	`, id)
-	err := row.Scan(&page.Id, &page.Url, &page.Category, &page.Theme)
+		select id, url, category, theme, stats from `+pr.tableName+` where `+filter+` = $1 
+	`, value)
+	err := row.Scan(&page.Id, &page.Url, &page.Category, &page.Theme, &page.Stats)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +120,4 @@ func (pr *pageRepository) Update(c context.Context, db *pgxpool.Pool, id uint, c
 	}
 
 	return nil
-
-	return err
 }

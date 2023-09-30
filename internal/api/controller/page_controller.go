@@ -72,7 +72,21 @@ func (pc *pageController) GetPageById(c *fiber.Ctx) error {
 		return utils.ErrValidationError("id", errors.New(fmt.Sprintf("id must be positive: %d", pageId)))
 	}
 
-	page, err := pc.pageRepository.GetById(c, uint(pageId))
+	page, err := pc.pageRepository.GetOneByFilter(c, "id", uint(pageId))
+	if err != nil {
+		return utils.ErrGetRecordsFailed("page", err)
+	}
+
+	return c.Status(http.StatusOK).JSON(page)
+}
+
+func (pc *pageController) GetPageByUrl(c *fiber.Ctx) error {
+	pageData := model.GetPageByUrlRequest{}
+	if err := json.Unmarshal(c.Body(), &pageData); err != nil {
+		return utils.ErrValidationError("pageUrl", err)
+	}
+
+	page, err := pc.pageRepository.GetOneByFilter(c, "url", pageData.Url)
 	if err != nil {
 		return utils.ErrGetRecordsFailed("page", err)
 	}

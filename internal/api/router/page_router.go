@@ -27,6 +27,7 @@ func (r *router) setupPageRoutes(g fiber.Router) error {
 	pages.Get("/by_website/:id", pageController.GetPageByWebsiteId)
 	pages.Get("/:id", pageController.GetPageById)
 	pages.Post("/create", pageController.CreatePage)
+	pages.Post("/check_url", pageController.GetPageByUrl)
 
 	return nil
 }
