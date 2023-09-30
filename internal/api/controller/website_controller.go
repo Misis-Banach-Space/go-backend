@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/yogenyslav/kokoc-hack/internal/logging"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 	"github.com/yogenyslav/kokoc-hack/internal/service"
 	"github.com/yogenyslav/kokoc-hack/internal/utils"
@@ -126,16 +125,10 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 	c.Set("Transfer-Encoding", "chunked")
 
 	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
-		fmt.Println("WRITER")
-		res := model.UrlResponse{}
-		for d := range wc.rabbitmq.Msgs() {
-			err := json.Unmarshal(d.Body, &res)
-			if err != nil {
-				logging.Log.Errorf("can't unmarshal response: %+v", err)
-				return
-			}
-			fmt.Fprintf(w, "%+v", res)
+		for event := range wc.rabbitmq.Events() {
+			fmt.Fprintf(w, "%+v", event)
 		}
+		w.Flush()
 	})
 
 	return nil

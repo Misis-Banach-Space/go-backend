@@ -32,6 +32,7 @@ type RabbitMQ struct {
 	channel *amqp.Channel
 	queue   amqp.Queue
 	msgs    <-chan amqp.Delivery
+	events  chan string
 	dbPool  *pgxpool.Pool
 }
 
@@ -117,7 +118,6 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 				return
 			}
 			logging.Log.Debugf("got response: %+v", res)
-
 			break
 		}
 	}
@@ -125,10 +125,11 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 	if err != nil {
 		logging.Log.Errorf("can't update url in db: %+v", err)
 	}
+	r.events <- "updated"
 }
 
-func (r *RabbitMQ) Msgs() <-chan amqp.Delivery {
-	return r.msgs
+func (r *RabbitMQ) Events() chan string {
+	return r.events
 }
 
 func (r *RabbitMQ) Close() {
