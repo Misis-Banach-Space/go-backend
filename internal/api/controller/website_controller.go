@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -125,21 +126,20 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 	c.Set("Transfer-Encoding", "chunked")
 
 	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
-		var forever chan string
-		go func() {
-			for event := range wc.rabbitmq.Events() {
-				msg := fmt.Sprintf("the event is %s", event)
-				fmt.Fprintf(w, "data: Message: %s\n\n", msg)
-				fmt.Println(msg)
+		var i int
+		for event := range wc.rabbitmq.Events() {
+			i++
+			msg := fmt.Sprintf("%d - the event is %s", i, event)
+			fmt.Fprintf(w, "data: Message: %s\n\n", msg)
+			fmt.Println(msg)
 
-				err := w.Flush()
-				if err != nil {
-					fmt.Printf("Error while flushing: %v. Closing http connection.\n", err)
-					return
-				}
+			err := w.Flush()
+			if err != nil {
+				fmt.Printf("Error while flushing: %v. Closing http connection.\n", err)
+				break
 			}
-		}()
-		<-forever
+			time.Sleep(2 * time.Second)
+		}
 	})
 
 	return nil

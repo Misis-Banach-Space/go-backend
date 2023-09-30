@@ -72,7 +72,7 @@ func NewRabbutMQ(pool *pgxpool.Pool) (*RabbitMQ, error) {
 		return nil, err
 	}
 
-	events := make(chan string, 1)
+	events := make(chan string)
 
 	return &RabbitMQ{
 		conn:    conn,
