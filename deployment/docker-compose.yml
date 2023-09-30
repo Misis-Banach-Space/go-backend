@@ -32,6 +32,6 @@ services:
 
   ml-backend:
     build:
-      context: ../../ml_backend/.
+      context: ../../ml-backend/.
       dockerfile: Dockerfile
     restart: always
