@@ -43,7 +43,7 @@ func (pc *pageController) CreatePage(c *fiber.Ctx) error {
 	}
 
 	var websiteId uint
-	website, err := pc.websiteRepository.GetByUrl(c, pageDomain)
+	website, err := pc.websiteRepository.GetOneByFilter(c, "url", pageDomain)
 	if errors.Is(err, pgx.ErrNoRows) {
 		websiteId, err = pc.websiteRepository.Add(c, model.WebsiteCreate{Url: pageDomain})
 		if err != nil {

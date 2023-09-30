@@ -64,7 +64,7 @@ func (wc *websiteController) GetWebsiteById(c *fiber.Ctx) error {
 		return utils.ErrValidationError("id", errors.New(fmt.Sprintf("id must be positive: %d", websiteId)))
 	}
 
-	website, err := wc.repository.GetById(c, uint(websiteId))
+	website, err := wc.repository.GetOneByFilter(c, "id", uint(websiteId))
 	if err != nil {
 		return utils.ErrGetRecordsFailed("website", err)
 	}
@@ -78,7 +78,7 @@ func (wc *websiteController) GetWebsiteByUrl(c *fiber.Ctx) error {
 		return utils.ErrValidationError("websiteUrl", err)
 	}
 
-	website, err := wc.repository.GetByUrl(c, websiteData.Url)
+	website, err := wc.repository.GetOneByFilter(c, "url", websiteData.Url)
 	if err != nil {
 		return utils.ErrGetRecordsFailed("website", err)
 	}
@@ -89,7 +89,7 @@ func (wc *websiteController) GetWebsiteByUrl(c *fiber.Ctx) error {
 func (wc *websiteController) GetWebsitesByCategory(c *fiber.Ctx) error {
 	category := c.Params("category")
 
-	websites, err := wc.repository.GetByCategory(c, category)
+	websites, err := wc.repository.GetManyByFilter(c, "category", category)
 	if err != nil {
 		return utils.ErrGetRecordsFailed("website", err)
 	}
@@ -98,7 +98,7 @@ func (wc *websiteController) GetWebsitesByCategory(c *fiber.Ctx) error {
 }
 
 func (wc *websiteController) GetAllWebsites(c *fiber.Ctx) error {
-	websites, err := wc.repository.GetAll(c)
+	websites, err := wc.repository.GetManyByFilter(c, "", "")
 	if err != nil {
 		return utils.ErrGetRecordsFailed("website", err)
 	}
