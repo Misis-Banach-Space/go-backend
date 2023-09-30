@@ -138,7 +138,7 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 				logging.Log.Errorf("Error while flushing: %v. Closing http connection.\n", err)
 				break
 			}
-			time.Sleep(time.Microsecond * 150)
+			time.Sleep(time.Millisecond * 150)
 		}
 	})
 
