@@ -19,8 +19,8 @@ func NewWebsiteRepository(ctx context.Context, tableName string, db *pgxpool.Con
 		create table if not exists `+tableName+`(
 			id serial primary key,
 			url text unique,
-			category text default 'unmatched',
-			theme text default 'unmatched',
+			category text default '',
+			theme text default '',
 			stats jsonb,
 			created_at timestamp default current_timestamp,
 			updated_at timestamp default current_timestamp

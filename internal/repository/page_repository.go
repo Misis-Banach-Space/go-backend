@@ -17,8 +17,8 @@ func NewPageRepository(ctx context.Context, tableName string, db *pgxpool.Conn) 
 		create table if not exists `+tableName+`(
 			id serial primary key,
 			url text unique,
-			category text default 'unmatched',
-			theme text default 'unmatched',
+			category text default '',
+			theme text default '',
 			fk_website_id int not null,
 			created_at timestamp default current_timestamp,
 			updated_at timestamp default current_timestamp,

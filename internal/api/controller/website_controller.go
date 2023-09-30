@@ -6,10 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/yogenyslav/kokoc-hack/internal/logging"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 	"github.com/yogenyslav/kokoc-hack/internal/service"
 	"github.com/yogenyslav/kokoc-hack/internal/utils"
@@ -127,19 +127,14 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 
 	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 		fmt.Println("WRITER")
-		var i int
-		for {
-			i++
-			msg := fmt.Sprintf("%d - the time is %v", i, time.Now())
-			fmt.Fprintf(w, "data: Message: %s\n\n", msg)
-			fmt.Println(msg)
-
-			err := w.Flush()
+		res := model.UrlResponse{}
+		for d := range wc.rabbitmq.Msgs() {
+			err := json.Unmarshal(d.Body, &res)
 			if err != nil {
-				fmt.Printf("Error while flushing: %v. Closing http connection.\n", err)
-				break
+				logging.Log.Errorf("can't unmarshal response: %+v", err)
+				return
 			}
-			time.Sleep(2 * time.Second)
+			fmt.Fprintf(w, "%+v", res)
 		}
 	})
 

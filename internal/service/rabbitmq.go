@@ -127,6 +127,10 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 	}
 }
 
+func (r *RabbitMQ) Msgs() <-chan amqp.Delivery {
+	return r.msgs
+}
+
 func (r *RabbitMQ) Close() {
 	r.channel.Close()
 	r.conn.Close()
