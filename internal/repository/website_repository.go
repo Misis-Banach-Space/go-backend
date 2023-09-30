@@ -116,6 +116,13 @@ func (wr *websiteRepository) Update(c context.Context, db *pgxpool.Pool, newData
 		return err
 	}
 
+	_, err = db.Exec(c, `
+		update `+wr.tableName+` set updated_at = current_timestamp
+	`)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

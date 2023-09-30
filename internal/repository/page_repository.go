@@ -113,5 +113,12 @@ func (pr *pageRepository) Update(c context.Context, db *pgxpool.Pool, newData mo
 		return err
 	}
 
+	_, err = db.Exec(c, `
+		update `+pr.tableName+` set updated_at = current_timestamp
+	`)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
