@@ -55,12 +55,12 @@ func (pc *pageController) CreatePage(c *fiber.Ctx) error {
 		websiteId = website.Id
 	}
 
-	err = pc.pageRepository.Add(c, pageData, websiteId)
+	pageId, err := pc.pageRepository.Add(c, pageData, websiteId)
 	if err != nil {
 		return utils.ErrCreateRecordsFailed("page", err)
 	}
 
-	return c.SendStatus(http.StatusCreated)
+	return c.Status(http.StatusCreated).JSON(pageId)
 }
 
 func (pc *pageController) GetPageById(c *fiber.Ctx) error {

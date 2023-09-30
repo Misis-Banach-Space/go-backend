@@ -11,6 +11,7 @@ type Page struct {
 	Url         string
 	Category    string
 	Theme       string
+	Stats       string
 	FkWebsiteId uint
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -25,10 +26,11 @@ type PageDto struct {
 	Url      string `json:"url"`
 	Category string `json:"category"`
 	Theme    string `json:"theme"`
+	Stats    string `json:"stats"`
 }
 
 type PageRepository interface {
-	Add(c *fiber.Ctx, pageData PageCreate, websiteId uint) error
+	Add(c *fiber.Ctx, pageData PageCreate, websiteId uint) (uint, error)
 	GetById(c *fiber.Ctx, id uint) (*PageDto, error)
 	GetPagesByWebsiteId(c *fiber.Ctx, websiteId uint) (*[]PageDto, error)
 }

@@ -11,6 +11,7 @@ type Website struct {
 	Url       string
 	Category  string
 	Theme     string
+	Stats     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -24,6 +25,7 @@ type WebsiteDto struct {
 	Url      string `json:"url"`
 	Category string `json:"category"`
 	Theme    string `json:"theme"`
+	Stats    string `json:"stats"`
 }
 
 type WebsiteCategoryCount struct {

@@ -30,15 +30,19 @@ func NewPageRepository(ctx context.Context, tableName string, db *pgxpool.Conn) 
 	}, err
 }
 
-func (pr *pageRepository) Add(c *fiber.Ctx, pageData model.PageCreate, websiteId uint) error {
+func (pr *pageRepository) Add(c *fiber.Ctx, pageData model.PageCreate, websiteId uint) (uint, error) {
 	db := c.Locals("session").(*pgxpool.Conn)
 
-	_, err := db.Exec(c.Context(), `
+	var pageId uint
+	err := db.QueryRow(c.Context(), `
 		insert into `+pr.tableName+`(url, fk_website_id)
-		values($1, $2)
-	`, pageData.Url, websiteId)
+		values($1, $2) returning "id"
+	`, pageData.Url, websiteId).Scan(&pageId)
+	if err != nil {
+		return 0, err
+	}
 
-	return err
+	return pageId, nil
 }
 
 func (pr *pageRepository) GetById(c *fiber.Ctx, id uint) (*model.PageDto, error) {

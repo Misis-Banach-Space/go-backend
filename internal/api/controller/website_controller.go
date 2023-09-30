@@ -36,7 +36,7 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 		return utils.ErrValidationError("websiteData", err)
 	}
 
-	_, err := wc.repository.Add(c, websiteData)
+	websiteId, err := wc.repository.Add(c, websiteData)
 	if err != nil {
 		return utils.ErrCreateRecordsFailed("website", err)
 	}
@@ -44,7 +44,7 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 	// send request to ml with rabbit
 	// get statistics
 
-	return c.SendStatus(http.StatusCreated)
+	return c.Status(http.StatusCreated).JSON(websiteId)
 }
 
 func (wc *websiteController) GetWebsiteById(c *fiber.Ctx) error {
