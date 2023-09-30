@@ -50,9 +50,9 @@ func (pr *pageRepository) GetOneByFilter(c *fiber.Ctx, filter string, value any)
 	page := &model.PageDto{}
 
 	row := db.QueryRow(c.Context(), `
-		select id, url, category, theme from `+pr.tableName+` where `+filter+` = $1 
+		select id, url, category, theme, fk_website_id from `+pr.tableName+` where `+filter+` = $1 
 	`, value)
-	err := row.Scan(&page.Id, &page.Url, &page.Category, &page.Theme)
+	err := row.Scan(&page.Id, &page.Url, &page.Category, &page.Theme, &page.FkWebsiteId)
 	if err != nil {
 		return nil, err
 	}

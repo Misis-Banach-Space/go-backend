@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
+	"github.com/yogenyslav/kokoc-hack/internal/service"
 	"github.com/yogenyslav/kokoc-hack/internal/utils"
 )
 
@@ -17,13 +18,15 @@ type pageController struct {
 	pageRepository    model.PageRepository
 	websiteRepository model.WebsiteRepository
 	validator         *validator.Validate
+	rabbitmq          *service.RabbitMQ
 }
 
-func NewPageController(pr model.PageRepository, wr model.WebsiteRepository) pageController {
+func NewPageController(pr model.PageRepository, wr model.WebsiteRepository, rabbit *service.RabbitMQ) pageController {
 	return pageController{
 		pageRepository:    pr,
 		websiteRepository: wr,
 		validator:         validator.New(validator.WithRequiredStructEnabled()),
+		rabbitmq:          rabbit,
 	}
 }
 
@@ -49,6 +52,10 @@ func (pc *pageController) CreatePage(c *fiber.Ctx) error {
 		if err != nil {
 			return utils.ErrCreateRecordsFailed("website", err)
 		}
+		go pc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
+			Id:  websiteId,
+			Url: pageDomain,
+		}, pc.websiteRepository)
 	} else if err != nil {
 		return utils.ErrGetRecordsFailed("websiteId", err)
 	} else {
@@ -59,6 +66,11 @@ func (pc *pageController) CreatePage(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrCreateRecordsFailed("page", err)
 	}
+
+	go pc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
+		Id:  pageId,
+		Url: pageData.Url,
+	}, pc.pageRepository)
 
 	return c.Status(http.StatusCreated).JSON(pageId)
 }

@@ -23,10 +23,11 @@ type PageCreate struct {
 }
 
 type PageDto struct {
-	Id       uint   `json:"id"`
-	Url      string `json:"url"`
-	Category string `json:"category"`
-	Theme    string `json:"theme"`
+	Id          uint   `json:"id"`
+	Url         string `json:"url"`
+	Category    string `json:"category"`
+	Theme       string `json:"theme"`
+	FkWebsiteId uint   `json:"websiteId"`
 }
 
 type GetPageByUrlRequest struct {
