@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/yogenyslav/kokoc-hack/internal/logging"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 )
 
@@ -97,18 +98,21 @@ func (wr *websiteRepository) Update(c context.Context, db *pgxpool.Pool, newData
 		update `+wr.tableName+` set category = $1 where id = $2;
 	`, newData.Category, newData.Id)
 	if err != nil {
+		logging.Log.Error("category error")
 		return err
 	}
 	_, err = db.Exec(c, `
-		update `+wr.tableName+` set theme = 13 where id = $2;
+		update `+wr.tableName+` set theme = $1 where id = $2;
 	`, newData.Theme, newData.Id)
 	if err != nil {
+		logging.Log.Error("theme error")
 		return err
 	}
 	_, err = db.Exec(c, `
 		update `+wr.tableName+` set stats = $1 where id = $2;
 	`, newData.Stats, newData.Id)
 	if err != nil {
+		logging.Log.Error("stats error")
 		return err
 	}
 

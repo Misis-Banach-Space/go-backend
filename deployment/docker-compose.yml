@@ -26,5 +26,12 @@ services:
       - ../.env
     depends_on:
       - db
+      - rabbit
     ports:
       - "9999:9999"
+
+  ml-backend:
+    build:
+      context: ../../ml_backend/.
+      dockerfile: Dockerfile
+    restart: always

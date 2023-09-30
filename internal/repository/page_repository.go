@@ -107,7 +107,7 @@ func (pr *pageRepository) Update(c context.Context, db *pgxpool.Pool, newData mo
 		return err
 	}
 	_, err = db.Exec(c, `
-		update `+pr.tableName+` set theme = 13 where id = $2;
+		update `+pr.tableName+` set theme = $1 where id = $2;
 	`, newData.Theme, newData.Id)
 	if err != nil {
 		return err
