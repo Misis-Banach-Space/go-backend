@@ -111,7 +111,6 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 	res := model.UrlResponse{}
 	for d := range r.msgs {
 		if corrId == d.CorrelationId {
-			// fmt.Printf("got byte string %s\n", string(d.Body))
 			err := json.Unmarshal(d.Body, &res)
 			if err != nil {
 				logging.Log.Errorf("can't unmarshal response: %+v", err)
