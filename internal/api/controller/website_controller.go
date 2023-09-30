@@ -132,7 +132,7 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 		for {
 			event := <-wc.rabbitmq.Events()
 			logging.Log.Debugf("event: %s", event)
-			fmt.Fprintf(w, "%+v", event)
+			fmt.Fprintf(w, "data: Event: %s\n\n", event)
 			if err := w.Flush(); err != nil {
 				logging.Log.Errorf("failed to flush: %+v", err)
 				break
