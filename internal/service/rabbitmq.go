@@ -165,6 +165,7 @@ func (r *RabbitMQ) PublishUrlWithWaitGroup(c context.Context, route string, urlR
 		return
 	}
 
+	wg.Add(1)
 	res := model.UrlResponse{}
 	for d := range r.msgs {
 		if corrId == d.CorrelationId {
@@ -175,12 +176,13 @@ func (r *RabbitMQ) PublishUrlWithWaitGroup(c context.Context, route string, urlR
 				return
 			}
 			logging.Log.Debugf("unmarshaled %+v", res)
-			err = repository.Update(c, r.dbPool, res)
-			if err != nil {
-				return
-			}
-
-			r.events <- res
+			go func(res model.UrlResponse) {
+				defer wg.Done()
+				err = repository.Update(c, r.dbPool, res)
+				if err != nil {
+					return
+				}
+			}(res)
 			return
 		}
 	}
