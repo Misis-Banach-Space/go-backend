@@ -21,6 +21,9 @@ func (r *router) setupPageRoutes(g fiber.Router) error {
 		return err
 	}
 	websiteRepository, err := repository.NewWebsiteRepository(ctx, "websites", session)
+	if err != nil {
+		return err
+	}
 	pageController := controller.NewPageController(pageRepository, websiteRepository, r.rabbitmq)
 
 	pages := g.Group("/pages")

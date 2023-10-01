@@ -55,7 +55,7 @@ func (pc *pageController) CreatePage(c *fiber.Ctx) error {
 		go pc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
 			Id:  websiteId,
 			Url: pageDomain,
-		}, pc.websiteRepository)
+		}, pc.websiteRepository, nil)
 	} else if err != nil {
 		return utils.ErrGetRecordsFailed("websiteId", err)
 	} else {
@@ -70,7 +70,7 @@ func (pc *pageController) CreatePage(c *fiber.Ctx) error {
 	go pc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
 		Id:  pageId,
 		Url: pageData.Url,
-	}, pc.pageRepository)
+	}, pc.pageRepository, nil)
 
 	return c.Status(http.StatusCreated).JSON(pageId)
 }
@@ -101,6 +101,13 @@ func (pc *pageController) GetPageByUrl(c *fiber.Ctx) error {
 	page, err := pc.pageRepository.GetOneByFilter(c, "url", pageData.Url)
 	if err != nil {
 		return utils.ErrGetRecordsFailed("page", err)
+	}
+
+	if page.Category == "" || page.Theme == "" {
+		go pc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
+			Id:  page.Id,
+			Url: pageData.Url,
+		}, pc.pageRepository, nil)
 	}
 
 	return c.Status(http.StatusOK).JSON(page)

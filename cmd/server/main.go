@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/yogenyslav/kokoc-hack/internal/api/router"
 	"github.com/yogenyslav/kokoc-hack/internal/config"
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	time.Sleep(time.Second * 5) // wait for rabbitmq to start
 	if err := config.NewConfig(); err != nil {
 		fmt.Printf("failed to init config: %+v", err)
 		panic(err)

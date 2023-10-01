@@ -44,6 +44,10 @@ func (r *router) Setup() error {
 	r.engine.Use(recover.New(recover.ConfigDefault))
 	r.engine.Use(middleware.DbSessionMiddleware(r.db))
 
+	if err := r.setupReportRoutes(r.engine); err != nil {
+		return err
+	}
+
 	apiV1 := r.engine.Group("/api/v1")
 	if err := r.setupWebsiteRoutes(apiV1); err != nil {
 		return err

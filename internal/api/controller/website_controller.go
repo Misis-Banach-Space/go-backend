@@ -48,7 +48,7 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 	go wc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
 		Id:  websiteId,
 		Url: websiteData.Url,
-	}, wc.repository)
+	}, wc.repository, nil)
 
 	return c.Status(http.StatusCreated).JSON(websiteId)
 }
@@ -81,11 +81,11 @@ func (wc *websiteController) GetWebsiteByUrl(c *fiber.Ctx) error {
 		return utils.ErrGetRecordsFailed("website", err)
 	}
 
-	if website.Category == "unmatched" || website.Theme == "unmatched" || website.Stats == nil {
+	if website.Category == "" || website.Theme == "" || website.Stats == nil {
 		go wc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
 			Id:  website.Id,
 			Url: websiteData.Url,
-		}, wc.repository)
+		}, wc.repository, nil)
 	}
 
 	return c.Status(http.StatusOK).JSON(website)
