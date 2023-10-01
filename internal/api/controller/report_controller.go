@@ -2,11 +2,13 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/yogenyslav/kokoc-hack/internal/logging"
 	"github.com/yogenyslav/kokoc-hack/internal/model"
 	"github.com/yogenyslav/kokoc-hack/internal/service"
 	"github.com/yogenyslav/kokoc-hack/internal/utils"
@@ -29,6 +31,7 @@ func NewReportController(rr model.ReportRepository, rabbitmq *service.RabbitMQ) 
 func (rc *reportController) GetReport(c *fiber.Ctx) error {
 	var wg sync.WaitGroup
 	reportRequest := model.ReportRequest{}
+	logging.Log.Debug("test")
 
 	if err := json.Unmarshal(c.Body(), &reportRequest); err != nil {
 		return utils.ErrValidationError("urlReportRequest", err)
@@ -43,24 +46,19 @@ func (rc *reportController) GetReport(c *fiber.Ctx) error {
 		return utils.ErrCustomResponse(http.StatusInternalServerError, "failed to get url domain", err)
 	}
 
-	var reportResponse model.ReportResponse
+	if string(reportRequest.Url[len(reportRequest.Url)-1]) == "/" {
+		reportRequest.Url = string(reportRequest.Url[:len(reportRequest.Url)-1])
+	}
 	if reportRequest.Url == urlDomain {
 		website, err := rc.repository.GetWebsite(c, reportRequest.Url)
 		if err != nil {
 			return utils.ErrCreateRecordsFailed("website", err)
 		}
 
-		wg.Add(1)
-		go rc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{Id: website.Id, Url: website.Url}, rc.repository.GetWebsiteRepository(), &wg)
-
-		website, err = rc.repository.GetWebsite(c, reportRequest.Url)
-		if err != nil {
-			return utils.ErrCreateRecordsFailed("website", err)
-		}
-
-		reportResponse = model.ReportResponse{
-			Category: website.Category,
-			Theme:    website.Theme,
+		logging.Log.Debugf("website url %s", reportRequest.Url)
+		if website.Category == "" || website.Theme == "" || website.Stats == nil {
+			wg.Add(1)
+			go rc.rabbitmq.PublishUrlWithWaitGroup(c.Context(), "url_queue", model.UrlRequest{Id: website.Id, Url: website.Url}, rc.repository.GetWebsiteRepository(), &wg)
 		}
 	} else {
 		page, err := rc.repository.GetPage(c, reportRequest.Url)
@@ -68,21 +66,22 @@ func (rc *reportController) GetReport(c *fiber.Ctx) error {
 			return utils.ErrCreateRecordsFailed("page", err)
 		}
 
-		wg.Add(1)
-		go rc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{Id: page.Id, Url: page.Url}, rc.repository.GetPageRepository(), &wg)
-
-		page, err = rc.repository.GetPage(c, reportRequest.Url)
-		if err != nil {
-			return utils.ErrCreateRecordsFailed("page", err)
+		logging.Log.Debugf("page url %s", reportRequest.Url)
+		if page.Category == "" || page.Theme == "" {
+			wg.Add(1)
+			go rc.rabbitmq.PublishUrlWithWaitGroup(c.Context(), "url_queue", model.UrlRequest{Id: page.Id, Url: page.Url}, rc.repository.GetPageRepository(), &wg)
 		}
+	}
+	wg.Wait()
 
-		reportResponse = model.ReportResponse{
-			Category: page.Category,
-			Theme:    page.Theme,
+	for event := range rc.rabbitmq.Events() {
+		if event.Url == reportRequest.Url {
+			return c.Status(http.StatusOK).JSON(model.ReportResponse{
+				Category: event.Category,
+				Theme:    event.Theme,
+			})
 		}
 	}
 
-	wg.Wait()
-
-	return c.Status(http.StatusOK).JSON(reportResponse)
+	return utils.ErrCustomResponse(http.StatusBadRequest, "can't determine category", errors.New("invalid request"))
 }

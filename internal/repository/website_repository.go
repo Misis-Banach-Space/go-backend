@@ -69,7 +69,7 @@ func (wr *websiteRepository) GetManyByFilter(c *fiber.Ctx, filter string, value 
 	var err error
 	sql := "select id, url, category, theme, stats from " + wr.tableName
 	if filter != "" {
-		sql += " where" + filter + " = $1;"
+		sql += " where " + filter + " = $1;"
 		rows, err = db.Query(c.Context(), sql, value)
 	} else {
 		rows, err = db.Query(c.Context(), sql)

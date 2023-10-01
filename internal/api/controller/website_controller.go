@@ -48,7 +48,7 @@ func (wc *websiteController) CreateWebsite(c *fiber.Ctx) error {
 	go wc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
 		Id:  websiteId,
 		Url: websiteData.Url,
-	}, wc.repository, nil)
+	}, wc.repository)
 
 	return c.Status(http.StatusCreated).JSON(websiteId)
 }
@@ -85,7 +85,7 @@ func (wc *websiteController) GetWebsiteByUrl(c *fiber.Ctx) error {
 		go wc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{
 			Id:  website.Id,
 			Url: websiteData.Url,
-		}, wc.repository, nil)
+		}, wc.repository)
 	}
 
 	return c.Status(http.StatusOK).JSON(website)
@@ -130,7 +130,7 @@ func (wc *websiteController) SseUpdateCategory(c *fiber.Ctx) error {
 		var i int
 		for event := range wc.rabbitmq.Events() {
 			i++
-			msg := fmt.Sprintf("%d - the event is %s", i, event)
+			msg := fmt.Sprintf("%d - the event is %s %s", i, event.Category, event.Theme)
 			fmt.Fprintf(w, "data: Message: %s\n\n", msg)
 
 			err := w.Flush()

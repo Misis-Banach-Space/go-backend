@@ -33,7 +33,7 @@ type RabbitMQ struct {
 	channel *amqp.Channel
 	queue   amqp.Queue
 	msgs    <-chan amqp.Delivery
-	events  chan string
+	events  chan model.UrlResponse
 	dbPool  *pgxpool.Pool
 }
 
@@ -73,7 +73,7 @@ func NewRabbutMQ(pool *pgxpool.Pool) (*RabbitMQ, error) {
 		return nil, err
 	}
 
-	events := make(chan string)
+	events := make(chan model.UrlResponse)
 
 	return &RabbitMQ{
 		conn:    conn,
@@ -85,10 +85,7 @@ func NewRabbutMQ(pool *pgxpool.Pool) (*RabbitMQ, error) {
 	}, nil
 }
 
-func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.UrlRequest, repository model.UrlEventRepository, wg *sync.WaitGroup) {
-	if wg != nil {
-		defer wg.Done()
-	}
+func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.UrlRequest, repository model.UrlEventRepository) {
 	corrId := randomString(32)
 
 	ctx, cancel := context.WithTimeout(c, 5*time.Second)
@@ -127,22 +124,69 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 				return
 			}
 			logging.Log.Debugf("unmarshaled %+v", res)
-			go func() {
-				logging.Log.Debugf("updating url %s", res.Url)
-				err = repository.Update(c, r.dbPool, res)
-				if err != nil {
-					logging.Log.Errorf("can't update url in db: %+v", err)
-					return
-				}
-				logging.Log.Debugf("updated record with url %s", res.Url)
-				r.events <- fmt.Sprintf("updated id: %d", res.Id)
-			}()
+			err = repository.Update(c, r.dbPool, res)
+			if err != nil {
+				return
+			}
+
+			r.events <- res
 			return
 		}
 	}
 }
 
-func (r *RabbitMQ) Events() chan string {
+func (r *RabbitMQ) PublishUrlWithWaitGroup(c context.Context, route string, urlRequest model.UrlRequest, repository model.UrlEventRepository, wg *sync.WaitGroup) {
+	defer wg.Done()
+	corrId := randomString(32)
+
+	ctx, cancel := context.WithTimeout(c, 5*time.Second)
+	defer cancel()
+
+	b := bytes.Buffer{}
+	err := json.NewEncoder(&b).Encode(urlRequest)
+	if err != nil {
+		return
+	}
+
+	logging.Log.Debugf("sending request %s", string(b.Bytes()))
+	err = r.channel.PublishWithContext(ctx,
+		"",    // exchange
+		route, // routing key
+		false, // mandatory
+		false, // immediate
+		amqp.Publishing{
+			ContentType:   "text/plain",
+			CorrelationId: corrId,
+			ReplyTo:       r.queue.Name,
+			Body:          b.Bytes(),
+		})
+	if err != nil {
+		logging.Log.Errorf("failed to publish: %+v", err)
+		return
+	}
+
+	res := model.UrlResponse{}
+	for d := range r.msgs {
+		if corrId == d.CorrelationId {
+			logging.Log.Debugf("got bytes %s", string(d.Body))
+			err := json.Unmarshal(d.Body, &res)
+			if err != nil {
+				logging.Log.Errorf("can't unmarshal response: %+v", err)
+				return
+			}
+			logging.Log.Debugf("unmarshaled %+v", res)
+			err = repository.Update(c, r.dbPool, res)
+			if err != nil {
+				return
+			}
+
+			r.events <- res
+			return
+		}
+	}
+}
+
+func (r *RabbitMQ) Events() chan model.UrlResponse {
 	return r.events
 }
 
