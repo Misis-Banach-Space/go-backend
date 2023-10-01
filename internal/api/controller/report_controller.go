@@ -53,6 +53,11 @@ func (rc *reportController) GetReport(c *fiber.Ctx) error {
 		wg.Add(1)
 		go rc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{Id: website.Id, Url: website.Url}, rc.repository.GetWebsiteRepository(), &wg)
 
+		website, err = rc.repository.GetWebsite(c, reportRequest.Url)
+		if err != nil {
+			return utils.ErrCreateRecordsFailed("website", err)
+		}
+
 		reportResponse = model.ReportResponse{
 			Category: website.Category,
 			Theme:    website.Theme,
@@ -65,6 +70,11 @@ func (rc *reportController) GetReport(c *fiber.Ctx) error {
 
 		wg.Add(1)
 		go rc.rabbitmq.PublishUrl(c.Context(), "url_queue", model.UrlRequest{Id: page.Id, Url: page.Url}, rc.repository.GetPageRepository(), &wg)
+
+		page, err = rc.repository.GetPage(c, reportRequest.Url)
+		if err != nil {
+			return utils.ErrCreateRecordsFailed("page", err)
+		}
 
 		reportResponse = model.ReportResponse{
 			Category: page.Category,

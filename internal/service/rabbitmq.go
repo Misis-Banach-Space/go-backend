@@ -127,16 +127,14 @@ func (r *RabbitMQ) PublishUrl(c context.Context, route string, urlRequest model.
 				return
 			}
 			logging.Log.Debugf("unmarshaled %+v", res)
-			logging.Log.Debugf("updating url %s", res.Url)
 			go func() {
+				logging.Log.Debugf("updating url %s", res.Url)
 				err = repository.Update(c, r.dbPool, res)
 				if err != nil {
 					logging.Log.Errorf("can't update url in db: %+v", err)
 					return
 				}
 				logging.Log.Debugf("updated record with url %s", res.Url)
-			}()
-			go func() {
 				r.events <- fmt.Sprintf("updated id: %d", res.Id)
 			}()
 			return
