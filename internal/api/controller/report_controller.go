@@ -63,6 +63,7 @@ func (rc *reportController) GetReport(c *fiber.Ctx) error {
 		if err != nil {
 			return utils.ErrGetRecordsFailed("page", err)
 		}
+		logging.Log.Debugf("got updated website %+v", website)
 
 		return c.Status(http.StatusOK).JSON(model.ReportResponse{
 			Category: updated.Category,
@@ -85,6 +86,7 @@ func (rc *reportController) GetReport(c *fiber.Ctx) error {
 		if err != nil {
 			return utils.ErrGetRecordsFailed("page", err)
 		}
+		logging.Log.Debugf("got updated page %+v", page)
 
 		return c.Status(http.StatusOK).JSON(model.ReportResponse{
 			Category: updated.Category,
